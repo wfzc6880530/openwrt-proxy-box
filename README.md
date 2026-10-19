@@ -15,7 +15,7 @@ GitHub Actions → `Build IPK (ImmortalWrt 24.10 x86_64)` → download `luci-app
 
 ## Install
 ```sh
-opkg install ./luci-app-proxy-box_0.2.0-1_all.ipk
+opkg install ./luci-app-proxy-box_0.2.1-1_all.ipk
 /etc/init.d/rpcd restart
 /etc/init.d/uhttpd restart
 ```
