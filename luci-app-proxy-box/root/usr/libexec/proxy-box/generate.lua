@@ -244,11 +244,17 @@ local function main()
   if port < 1 or port > 65535 then error("mixed_port must be 1..65535") end
   local test_url = uci:get("proxy_box", "main", "test_url") or "https://www.gstatic.com/generate_204"
 
-  local trimmed = trim(links)
-  if trimmed ~= "" and not trimmed:find("://", 1, true) and not trimmed:find("\n", 1, true) then
-    local decoded = b64decode(trimmed)
-    if decoded and decoded:find("://", 1, true) then links = decoded end
+  local function decode_subscription_body(value)
+    local trimmed = trim(value)
+    if trimmed ~= "" and not trimmed:find("://", 1, true) and not trimmed:find("\\n", 1, true) then
+      local decoded = b64decode(trimmed)
+      if decoded and decoded:find("://", 1, true) then return decoded end
+    end
+    return value
   end
+  links = decode_subscription_body(links)
+  manual_links = decode_subscription_body(manual_links)
+  links = links .. "\\n" .. manual_links
 
   local nodes, outbounds, seen = {}, {}, {}
   local index = 0
