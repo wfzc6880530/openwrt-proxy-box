@@ -1,0 +1,13 @@
+{
+  "admin/services/proxy-box": {
+    "title": "Proxy Box",
+    "order": 90,
+    "action": {
+      "type": "view",
+      "path": "proxy-box/main"
+    },
+    "depends": {
+      "acl": ["luci-app-proxy-box"]
+    }
+  }
+}
