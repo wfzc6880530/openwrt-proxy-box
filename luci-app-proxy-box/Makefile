@@ -4,7 +4,7 @@ LUCI_TITLE:=LuCI app for Proxy Box
 LUCI_DEPENDS:=+luci-base +rpcd
 LUCI_PKGARCH:=all
 PKG_NAME:=luci-app-proxy-box
-PKG_VERSION:=0.1.0
+PKG_VERSION:=0.2.0
 PKG_RELEASE:=1
 PKG_LICENSE:=MIT
 PKG_MAINTAINER:=OpenWrt Proxy Box contributors
@@ -21,8 +21,8 @@ define Package/luci-app-proxy-box
 endef
 
 define Package/luci-app-proxy-box/description
-An experimental LuCI management skeleton for OpenWrt Proxy Box.
-This package does not provide a proxy core or transparent proxy rules.
+An experimental LuCI node manager for sing-box on OpenWrt.
+No firewall or OpenClash configuration is changed.
 endef
 
 define Build/Compile
@@ -33,6 +33,8 @@ define Package/luci-app-proxy-box/install
 	$(INSTALL_CONF) ./root/etc/config/proxy_box $(1)/etc/config/proxy_box
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./root/etc/init.d/proxy_box $(1)/etc/init.d/proxy_box
+	$(INSTALL_DIR) $(1)/usr/libexec/proxy-box
+	$(INSTALL_BIN) ./root/usr/libexec/proxy-box/generate.lua $(1)/usr/libexec/proxy-box/generate.lua
 	$(INSTALL_DIR) $(1)/usr/share/luci/menu.d
 	$(INSTALL_DATA) ./root/usr/share/luci/menu.d/luci-app-proxy-box.json $(1)/usr/share/luci/menu.d/luci-app-proxy-box.json
 	$(INSTALL_DIR) $(1)/usr/share/rpcd/acl.d
