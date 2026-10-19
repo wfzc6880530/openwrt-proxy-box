@@ -33,13 +33,6 @@ return view.extend({
 		o.default = '0';
 		o.description = _('Disabled by default. The generated inbound listens on 127.0.0.1 only; this keeps it separate from OpenClash.');
 
-		o = s.option(form.ListValue, 'mode', _('Routing mode'));
-		o.value('rule', _('Rule mode (MVP default)'));
-		o.value('global', _('Global proxy'));
-		o.value('direct', _('Direct'));
-		o.default = 'rule';
-		o.description = _('The MVP routes local mixed-inbound traffic through the sing-box proxy group. LAN transparent proxy is not enabled.');
-
 		o = s.option(form.Value, 'core_path', _('sing-box executable path'));
 		o.default = '/usr/bin/sing-box';
 		o.rmempty = false;
