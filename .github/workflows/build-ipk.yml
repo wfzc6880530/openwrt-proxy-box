@@ -19,7 +19,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential clang flex bison g++ gawk \
             gcc-multilib g++-multilib gettext git libncurses-dev libssl-dev \
-            python3-setuptools rsync unzip zlib1g-dev file wget zstd
+            python3-setuptools rsync unzip zlib1g-dev file wget zstd lua5.1
 
       - name: Download SDK
         run: |
@@ -28,6 +28,9 @@ jobs:
           mkdir sdk
           tar --zstd -xf sdk.tar.zst -C sdk --strip-components=1
           echo "SDK_DIR=$PWD/sdk" >> "$GITHUB_ENV"
+
+      - name: Validate Lua syntax
+        run: luac5.1 -p luci-app-proxy-box/root/usr/libexec/proxy-box/generate.lua
 
       - name: Prepare package
         run: |
