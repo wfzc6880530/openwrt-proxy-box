@@ -218,8 +218,21 @@ local function main()
   local links = uci:get("proxy_box", "main", "share_links") or ""
   local manual_links = uci:get("proxy_box", "main", "manual_links") or ""
   local subscription_url = trim(uci:get("proxy_box", "main", "subscription_url") or "")
+  local config_path = uci:get("proxy_box", "main", "config_path") or "/etc/proxy-box/config.json"
+  local port = tonumber(uci:get("proxy_box", "main", "mixed_port") or "17890") or 17890
+  if port < 1 or port > 65535 then error("mixed_port must be 1..65535") end
+  local test_url = uci:get("proxy_box", "main", "test_url") or "https://www.gstatic.com/generate_204"
 
-  -- Fetch only explicit HTTP(S) subscription URLs; shell-quote the URL before invoking uclient-fetch.
+  local function decode_subscription_body(value)
+    local trimmed = trim(value)
+    if trimmed ~= "" and not trimmed:find("://", 1, true) and not trimmed:find("\n", 1, true) then
+      local decoded = b64decode(trimmed)
+      if decoded and decoded:find("://", 1, true) then return decoded end
+    end
+    return value
+  end
+
+  links = decode_subscription_body(links)
   if subscription_url ~= "" then
     if not subscription_url:match("^https?://") then
       error("subscription_url must start with http:// or https://")
@@ -230,31 +243,16 @@ local function main()
       local body = pipe:read("*a") or ""
       pipe:close()
       if body ~= "" then
-        links = links .. "\\n" .. body
+        links = links .. "\n" .. decode_subscription_body(body)
       else
-        io.stderr:write("proxy-box generator: subscription download returned empty content; continuing with pasted links.\\n")
+        io.stderr:write("proxy-box generator: subscription download returned empty content; continuing with pasted links.\n")
       end
     else
-      io.stderr:write("proxy-box generator: could not start uclient-fetch; continuing with pasted links.\\n")
+      io.stderr:write("proxy-box generator: could not start uclient-fetch; continuing with pasted links.\n")
     end
   end
-  links = links .. "\\n" .. manual_links
-  local config_path = uci:get("proxy_box", "main", "config_path") or "/etc/proxy-box/config.json"
-  local port = tonumber(uci:get("proxy_box", "main", "mixed_port") or "17890") or 17890
-  if port < 1 or port > 65535 then error("mixed_port must be 1..65535") end
-  local test_url = uci:get("proxy_box", "main", "test_url") or "https://www.gstatic.com/generate_204"
-
-  local function decode_subscription_body(value)
-    local trimmed = trim(value)
-    if trimmed ~= "" and not trimmed:find("://", 1, true) and not trimmed:find("\\n", 1, true) then
-      local decoded = b64decode(trimmed)
-      if decoded and decoded:find("://", 1, true) then return decoded end
-    end
-    return value
-  end
-  links = decode_subscription_body(links)
   manual_links = decode_subscription_body(manual_links)
-  links = links .. "\\n" .. manual_links
+  links = links .. "\n" .. manual_links
 
   local nodes, outbounds, seen = {}, {}, {}
   local index = 0
