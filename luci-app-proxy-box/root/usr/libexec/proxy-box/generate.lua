@@ -301,7 +301,7 @@ local function main()
 
   -- Build configurable strategy groups and remote rule-set based routing.
   local node_tags = {}
-  for _, n in ipairs(outbounds) do
+  for _, n in ipairs(nodes) do
     if n.tag and n.tag ~= "" then node_tags[#node_tags + 1] = n.tag end
   end
   local function configured(key, fallback)
