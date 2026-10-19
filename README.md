@@ -4,7 +4,7 @@ An independent LuCI plugin project for ImmortalWrt/OpenWrt 24.10 x86_64 testing.
 
 ## Current MVP
 - LuCI settings and node import page.
-- Paste common sing-box share URIs or a Base64-encoded subscription body.
+- Import an HTTP(S) subscription URL, paste common sing-box share URIs, or paste a Base64-encoded subscription body.
 - Parses VLESS, VMess, Trojan, Shadowsocks, Hysteria2, TUIC, SOCKS5 and HTTP(S) links.
 - Generates sing-box config with URL-test and selector groups.
 - sing-box service is disabled by default and its inbound listens on 127.0.0.1 only.
@@ -19,7 +19,7 @@ opkg install ./luci-app-proxy-box_0.2.1-1_all.ipk
 /etc/init.d/rpcd restart
 /etc/init.d/uhttpd restart
 ```
-Open LuCI → Services → Proxy Box. Paste node share links, then click Save & Apply.
+Open LuCI → Services → Proxy Box. Enter a subscription URL in “① 导入订阅”, or paste node links in “② 添加节点 / 粘贴分享链接”, then click Save & Apply. Refresh the page after saving to see imported nodes.
 
 The package does not include the sing-box binary. Install a compatible core separately and review the generated config before enabling the service.
 
