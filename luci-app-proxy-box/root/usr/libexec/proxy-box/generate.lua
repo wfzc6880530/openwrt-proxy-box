@@ -216,6 +216,29 @@ end
 
 local function main()
   local links = uci:get("proxy_box", "main", "share_links") or ""
+  local manual_links = uci:get("proxy_box", "main", "manual_links") or ""
+  local subscription_url = trim(uci:get("proxy_box", "main", "subscription_url") or "")
+
+  -- Fetch only explicit HTTP(S) subscription URLs; shell-quote the URL before invoking uclient-fetch.
+  if subscription_url ~= "" then
+    if not subscription_url:match("^https?://") then
+      error("subscription_url must start with http:// or https://")
+    end
+    local quoted_url = "'" .. subscription_url:gsub("'", "'\\''") .. "'"
+    local pipe = io.popen("uclient-fetch -q -O - " .. quoted_url .. " 2>/dev/null")
+    if pipe then
+      local body = pipe:read("*a") or ""
+      pipe:close()
+      if body ~= "" then
+        links = links .. "\\n" .. body
+      else
+        io.stderr:write("proxy-box generator: subscription download returned empty content; continuing with pasted links.\\n")
+      end
+    else
+      io.stderr:write("proxy-box generator: could not start uclient-fetch; continuing with pasted links.\\n")
+    end
+  end
+  links = links .. "\\n" .. manual_links
   local config_path = uci:get("proxy_box", "main", "config_path") or "/etc/proxy-box/config.json"
   local port = tonumber(uci:get("proxy_box", "main", "mixed_port") or "17890") or 17890
   if port < 1 or port > 65535 then error("mixed_port must be 1..65535") end
