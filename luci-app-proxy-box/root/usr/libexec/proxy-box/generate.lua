@@ -157,7 +157,7 @@ local function parse_link(line, index)
 
   if scheme == "vless" then
     node.type, node.uuid = "vless", user
-    node.encryption = q.encryption or "none"
+    if q.flow and q.flow ~= "" then node.flow = q.flow end
     node.tls = make_tls(q)
     node.transport = make_transport(q, q.type, q.host)
   elseif scheme == "trojan" then
@@ -195,7 +195,7 @@ local function outbound_from_node(n)
   local out = { type = n.type, tag = n.tag, server = n.server, server_port = n.server_port }
   local keys = {
     "uuid", "password", "method", "username", "version", "alter_id",
-    "security", "encryption", "congestion_control", "udp_relay_mode",
+    "security", "flow", "congestion_control", "udp_relay_mode",
     "up_mbps", "down_mbps", "obfs"
   }
   for _, k in ipairs(keys) do if n[k] ~= nil then out[k] = n[k] end end
