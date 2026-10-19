@@ -98,6 +98,64 @@ return view.extend({
 			children.push(E('p', {}, _('配置文件：/etc/proxy-box/config.json（除非设置了自定义路径）。')));
 			return E('div', { 'class': 'cbi-section' }, children);
 		};
+
+		s = m.section(form.TypedSection, 'proxy_box', _('④ 目标分流（测试版）'));
+		s.anonymous = true;
+		s.addremove = false;
+		s.description = _('使用 MetaCubeX/meta-rules-dat 公开 sing-box 规则集。每类规则可绑定直连、自动优选、手动选择、丢弃或自定义策略组。规则集由 sing-box 运行时下载；首次启动需要网络。');
+
+		var policies = [
+			['direct', _('直连（DIRECT）')],
+			['auto', _('自动优选（AUTO）')],
+			['select', _('手动选择（SELECT）')],
+			['reject', _('丢弃（REJECT）')],
+			['AI', _('AI 策略组')],
+			['TikTok', _('TikTok 策略组')],
+			['YouTube', _('YouTube 策略组')],
+			['Netflix', _('Netflix 策略组')],
+			['Games', _('Games 策略组')]
+		];
+		function addRouteOption(key, label, def, help) {
+			var opt = s.option(form.ListValue, key, label);
+			policies.forEach(function(p) { opt.value(p[0], p[1]); });
+			opt.default = def;
+			opt.rmempty = false;
+			if (help) opt.description = help;
+			return opt;
+		}
+		addRouteOption('route_youtube', _('YouTube'), 'auto', 'geosite-youtube');
+		addRouteOption('route_tiktok', _('TikTok'), 'TikTok', 'geosite-tiktok、geosite-tiktok@!cn');
+		addRouteOption('route_netflix', _('Netflix'), 'Netflix', 'geosite-netflix、geoip-netflix');
+		addRouteOption('route_github', _('GitHub'), 'auto', 'geosite-github');
+		addRouteOption('route_google', _('Google'), 'auto', 'geosite-google');
+		addRouteOption('route_microsoft', _('Microsoft'), 'direct', 'geosite-microsoft');
+		addRouteOption('route_apple', _('Apple'), 'direct', 'geosite-apple');
+		addRouteOption('route_games', _('Games'), 'Games', 'geosite-steam、geosite-sony');
+		addRouteOption('route_foreign', _('国外'), 'auto', 'geosite-gfw + 常见国外 IP 规则集');
+		addRouteOption('route_domestic', _('国内'), 'direct', 'geosite-cn、geoip-cn、geoip-private');
+		addRouteOption('route_other', _('其他 / 未命中兜底'), 'direct', '未命中已配置规则的流量走这里。');
+
+		s = m.section(form.TypedSection, 'proxy_box', _('⑤ 自定义策略组默认节点'));
+		s.anonymous = true;
+		s.addremove = false;
+		s.description = _('这些策略组会包含当前已导入的节点。选择默认节点后点击“保存并应用”；这是生成配置时的默认值，不是实时测速切换。');
+		var groups = [
+			['ai_node', _('AI 策略组默认节点')],
+			['tiktok_node', _('TikTok 策略组默认节点')],
+			['youtube_node', _('YouTube 策略组默认节点')],
+			['netflix_node', _('Netflix 策略组默认节点')],
+			['games_node', _('Games 策略组默认节点')]
+		];
+		groups.forEach(function(g) {
+			var opt = s.option(form.ListValue, g[0], g[1]);
+			nodes.forEach(function(n) {
+				if (n && n.tag) opt.value(n.tag, (n.name || n.tag) + ' (' + n.tag + ')');
+			});
+			opt.rmempty = true;
+			if (nodes.length) opt.default = nodes[0].tag;
+			else opt.description = _('导入节点后刷新页面即可选择。');
+		});
+
 		return m.render();
 	}
 });
