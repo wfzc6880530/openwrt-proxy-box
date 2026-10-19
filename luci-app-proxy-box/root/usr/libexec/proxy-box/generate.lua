@@ -359,7 +359,9 @@ local function main()
   }
   local rule_set_config = {}
   for _, name in ipairs(rulesets) do
-    local url = "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/" .. name .. ".srs"
+    local kind = name:match("^geoip%-") and "geoip" or "geosite"
+    local base = name:gsub("^geosite%-", ""):gsub("^geoip%-", "")
+    local url = "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/" .. kind .. "/" .. base .. ".srs"
     rule_set_config[#rule_set_config + 1] = {
       type = "remote", tag = name, format = "binary", url = url, download_detour = "direct"
     }
