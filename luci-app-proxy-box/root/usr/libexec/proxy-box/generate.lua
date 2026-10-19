@@ -211,7 +211,7 @@ local function write_file(path, content)
   if not f then error(err or ("cannot open " .. path)) end
   f:write(content)
   f:close()
-  fs.chmod(path, 384)
+  fs.chmod(path, "600")
 end
 
 local function main()
