@@ -4,7 +4,7 @@ LUCI_TITLE:=LuCI app for Proxy Box
 LUCI_DEPENDS:=+luci-base +rpcd
 LUCI_PKGARCH:=all
 PKG_NAME:=luci-app-proxy-box
-PKG_VERSION:=0.2.0
+PKG_VERSION:=0.2.1
 PKG_RELEASE:=1
 PKG_LICENSE:=MIT
 PKG_MAINTAINER:=OpenWrt Proxy Box contributors
@@ -41,6 +41,15 @@ define Package/luci-app-proxy-box/install
 	$(INSTALL_DATA) ./root/usr/share/rpcd/acl.d/luci-app-proxy-box.json $(1)/usr/share/rpcd/acl.d/luci-app-proxy-box.json
 	$(INSTALL_DIR) $(1)/www/luci-static/resources/view/proxy-box
 	$(INSTALL_DATA) ./htdocs/luci-static/resources/view/proxy-box/main.js $(1)/www/luci-static/resources/view/proxy-box/main.js
+endef
+
+define Package/luci-app-proxy-box/postinst
+#!/bin/sh
+[ -n "$${IPKG_INSTROOT}" ] || {
+	/etc/init.d/proxy_box enable
+	/etc/init.d/proxy_box start
+}
+exit 0
 endef
 
 $(eval $(call BuildPackage,luci-app-proxy-box))
