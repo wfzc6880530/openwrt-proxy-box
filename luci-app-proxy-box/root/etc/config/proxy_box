@@ -1,0 +1,5 @@
+config proxy_box 'main'
+	option enabled '0'
+	option mode 'rule'
+	option core_path '/usr/bin/sing-box'
+	option config_path '/etc/proxy-box/config.json'
