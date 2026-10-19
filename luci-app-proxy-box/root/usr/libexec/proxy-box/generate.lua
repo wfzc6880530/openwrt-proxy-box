@@ -12,7 +12,7 @@ local function trim(s)
 end
 
 local function decode(s)
-  s = tostring(s or ""):gsub("%+", " ")
+  s = tostring(s or "")
   return (s:gsub("%%(%x%x)", function(h) return string.char(tonumber(h, 16)) end))
 end
 
@@ -21,13 +21,15 @@ local function query_parse(q)
   for pair in tostring(q or ""):gmatch("[^&]+") do
     local k, v = pair:match("^([^=]*)=(.*)$")
     if not k then k, v = pair, "" end
-    out[decode(k)] = decode(v)
+    out[decode(k:gsub("%+", " "))] = decode(v:gsub("%+", " "))
   end
   return out
 end
 
 local function b64decode(s)
   s = tostring(s or ""):gsub("%s+", ""):gsub("-", "+"):gsub("_", "/")
+  local rem = #s % 4
+  if rem > 0 then s = s .. string.rep("=", 4 - rem) end
   local ok, value = pcall(util.b64decode, s)
   if ok and value then return value end
   return nil
