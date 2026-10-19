@@ -5,9 +5,6 @@
     "action": {
       "type": "view",
       "path": "proxy-box/main"
-    },
-    "depends": {
-      "acl": ["luci-app-proxy-box"]
     }
   }
 }
