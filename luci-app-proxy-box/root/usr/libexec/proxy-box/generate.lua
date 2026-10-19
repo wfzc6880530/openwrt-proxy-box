@@ -298,6 +298,102 @@ local function main()
   config.outbounds[#config.outbounds + 1] = { type = "direct", tag = "direct" }
   config.outbounds[#config.outbounds + 1] = { type = "block", tag = "block" }
 
+
+  -- Build configurable strategy groups and remote rule-set based routing.
+  local node_tags = {}
+  for _, n in ipairs(outbounds) do
+    if n.tag and n.tag ~= "" then node_tags[#node_tags + 1] = n.tag end
+  end
+  local function configured(key, fallback)
+    return uci:get("proxy_box", "main", key) or fallback
+  end
+  local function selected_node(key)
+    local wanted = configured(key, "")
+    for _, tag in ipairs(node_tags) do if tag == wanted then return wanted end end
+    return node_tags[1]
+  end
+  local function add_selector(tag, key)
+    if #node_tags == 0 then return end
+    local def = selected_node(key)
+    local options = {}
+    for _, t in ipairs(node_tags) do options[#options + 1] = t end
+    config.outbounds[#config.outbounds + 1] = {
+      type = "selector", tag = tag, outbounds = options, default = def
+    }
+  end
+  if #node_tags > 0 then
+    local opts = {}
+    for _, t in ipairs(node_tags) do opts[#opts + 1] = t end
+    config.outbounds[#config.outbounds + 1] = {
+      type = "selector", tag = "select", outbounds = opts, default = selected_node("selected_node")
+    }
+    add_selector("AI", "ai_node")
+    add_selector("TikTok", "tiktok_node")
+    add_selector("YouTube", "youtube_node")
+    add_selector("Netflix", "netflix_node")
+    add_selector("Games", "games_node")
+  end
+
+  local function policy_tag(key, fallback)
+    local value = configured(key, fallback)
+    if value == "direct" then return "direct" end
+    if value == "reject" then return "block" end
+    if value == "auto" then return #node_tags > 0 and "auto" or "direct" end
+    if value == "select" then return #node_tags > 0 and "select" or "direct" end
+    if value == "AI" or value == "TikTok" or value == "YouTube" or value == "Netflix" or value == "Games" then
+      local exists = #node_tags > 0
+      return exists and value or "direct"
+    end
+    return "direct"
+  end
+
+  local rulesets = {
+    "geosite-youtube",
+    "geosite-tiktok", "geosite-tiktok@!cn",
+    "geosite-netflix", "geoip-netflix",
+    "geosite-github", "geosite-google", "geosite-microsoft", "geosite-apple",
+    "geosite-steam", "geosite-sony",
+    "geosite-gfw", "geoip-cloudflare", "geoip-facebook", "geoip-cloudfront",
+    "geoip-fastly", "geoip-google", "geoip-telegram", "geoip-tor", "geoip-twitter",
+    "geosite-cn", "geoip-cn", "geoip-private"
+  }
+  local rule_set_config = {}
+  for _, name in ipairs(rulesets) do
+    local url = "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/" .. name .. ".srs"
+    rule_set_config[#rule_set_config + 1] = {
+      type = "remote", tag = name, format = "binary", url = url, download_detour = "direct"
+    }
+  end
+  config.route.rule_set = rule_set_config
+  config.route.rules = {}
+
+  local function add_rule(names, policy_key, fallback)
+    local active = {}
+    for _, name in ipairs(names) do active[#active + 1] = name end
+    if #active > 0 then
+      config.route.rules[#config.route.rules + 1] = {
+        rule_set = active, outbound = policy_tag(policy_key, fallback)
+      }
+    end
+  end
+
+  -- Service-specific rules take priority over broader domestic/foreign sets.
+  add_rule({"geosite-youtube"}, "route_youtube", "auto")
+  add_rule({"geosite-tiktok", "geosite-tiktok@!cn"}, "route_tiktok", "TikTok")
+  add_rule({"geosite-netflix", "geoip-netflix"}, "route_netflix", "Netflix")
+  add_rule({"geosite-github"}, "route_github", "auto")
+  add_rule({"geosite-google"}, "route_google", "auto")
+  add_rule({"geosite-microsoft"}, "route_microsoft", "direct")
+  add_rule({"geosite-apple"}, "route_apple", "direct")
+  add_rule({"geosite-steam", "geosite-sony"}, "route_games", "Games")
+  -- Domestic rules precede broad foreign IP categories to avoid accidental override.
+  add_rule({"geosite-cn", "geoip-cn", "geoip-private"}, "route_domestic", "direct")
+  add_rule({
+    "geosite-gfw", "geoip-cloudflare", "geoip-facebook", "geoip-cloudfront",
+    "geoip-fastly", "geoip-google", "geoip-telegram", "geoip-tor", "geoip-twitter"
+  }, "route_foreign", "auto")
+  config.route.final = policy_tag("route_other", "direct")
+
   write_file(config_path, json.stringify(config, true) .. "\n")
   write_file("/etc/proxy-box/nodes.json", json.stringify(nodes, true) .. "\n")
   io.stdout:write("Generated sing-box config; imported ", #nodes, " node(s).\n")
