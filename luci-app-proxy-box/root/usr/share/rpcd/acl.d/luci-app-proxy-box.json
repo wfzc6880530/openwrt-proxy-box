@@ -1,0 +1,17 @@
+{
+  "luci-app-proxy-box": {
+    "description": "Grant access to Proxy Box settings",
+    "read": {
+      "uci": ["proxy_box"],
+      "ubus": {
+        "file": ["*"]
+      }
+    },
+    "write": {
+      "uci": ["proxy_box"],
+      "ubus": {
+        "file": ["*"]
+      }
+    }
+  }
+}
