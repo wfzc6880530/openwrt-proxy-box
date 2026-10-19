@@ -21,3 +21,11 @@ To actually start the proxy service, install a compatible sing-box binary, revie
 - Parsing covers common fields and common WS/gRPC/TLS/Reality parameters; uncommon vendor-specific extensions may not work.
 - The proxy service is local-only. No LAN transparent proxy, firewall integration, DNS interception, or domestic/foreign split rules are enabled yet.
 - Always inspect imported node data and generated config before enabling the service.
+
+
+## Version 0.3.0 test build
+- Adds target-routing templates for YouTube, TikTok, Netflix, GitHub, Google, Microsoft, Apple, Games, foreign, domestic, and unmatched traffic.
+- Uses MetaCubeX/meta-rules-dat remote sing-box rule sets.
+- Adds route policy selectors for DIRECT, AUTO, SELECT, REJECT, and custom AI/TikTok/YouTube/Netflix/Games groups.
+- The selected node in custom groups is currently the generated selector's default; this version does not yet include a live Clash-compatible controller for instant switching.
+- Rule-set availability and sing-box 1.11.9 compatibility must be verified on the router. Domain-first fallback behavior should be tested with real domain and literal-IP traffic before enabling the service.
